@@ -1,5 +1,15 @@
-FROM dockerfile/java:oracle-java8
+FROM dockerfile/ubuntu
 ENV ES_PKG_NAME elasticsearch-5.5.2
+
+# Install Java.
+RUN \
+  echo oracle-java8-installer shared/accepted-oracle-license-v1-1 select true | debconf-set-selections && \
+  add-apt-repository -y ppa:webupd8team/java && \
+  apt-get update && \
+  apt-get install -y oracle-java8-installer
+
+ENV JAVA_HOME /usr/lib/jvm/java-8-oracle
+
 RUN \
   cd / && \
   wget https://artifacts.elastic.co/downloads/elasticsearch/$ES_PKG_NAME.tar.gz && \
@@ -10,6 +20,11 @@ RUN \
 ADD config/elasticsearch.yml /elasticsearch/config/elasticsearch.yml
 RUN apt-get update && \
     apt-get install supervisor munin munin-node -y
+
+
+RUN apt-get purge git curl -y && \
+    rm -rf /var/lib/apt/lists/* && \
+    rm -rf /var/cache/oracle-jdk8-installer
 
 COPY munin/elasticsearch_cache /usr/share/munin/plugins/elasticsearch_cache
 COPY munin/elasticsearch_cluster_shards /usr/share/munin/plugins/elasticsearch_cluster_shards
@@ -34,7 +49,8 @@ RUN ln -s /usr/share/munin/plugins/elasticsearch_cache /etc/munin/plugins/elasti
     ln -s /usr/share/munin/plugins/elasticsearch_open_files /etc/munin/plugins/elasticsearch_open_files
 COPY munin.sh /munin.sh
 
-
+# Define working directory.
+WORKDIR /data
 VOLUME ["/elasticsearch/config/elasticsearch.yml", "/elasticsearch/", "/data/log", "/data" ]
 EXPOSE 9200
 EXPOSE 9300
