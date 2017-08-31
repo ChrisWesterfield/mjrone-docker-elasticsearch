@@ -1,12 +1,16 @@
-FROM elasticsearch:5
-MAINTAINER Christopher Westerfield <chris@mjr.one>
+FROM dockerfile/java:oracle-java8
+ENV ES_PKG_NAME elasticsearch-5.5.2
+RUN \
+  cd / && \
+  wget https://artifacts.elastic.co/downloads/elasticsearch/$ES_PKG_NAME.tar.gz && \
+  tar xvzf $ES_PKG_NAME.tar.gz && \
+  rm -f $ES_PKG_NAME.tar.gz && \
+  mv /$ES_PKG_NAME /elasticsearch
 
-USER root
+ADD config/elasticsearch.yml /elasticsearch/config/elasticsearch.yml
+RUN apt-get update && \
+    apt-get install supervisor munin munin-node -y
 
-RUN yum -y install epel-release && \
-    yum -y update && \
-    yum -y install munin munin-node sudo
-RUN echo "elasticsearch ALL=(root) NOPASSWD:/usr/sbin/munin-node" >> /etc/sudoers
 COPY munin/elasticsearch_cache /usr/share/munin/plugins/elasticsearch_cache
 COPY munin/elasticsearch_cluster_shards /usr/share/munin/plugins/elasticsearch_cluster_shards
 COPY munin/elasticsearch_docs /usr/share/munin/plugins/elasticsearch_docs
@@ -29,10 +33,9 @@ RUN ln -s /usr/share/munin/plugins/elasticsearch_cache /etc/munin/plugins/elasti
     ln -s /usr/share/munin/plugins/elasticsearch_jvm_threads /etc/munin/plugins/elasticsearch_jvm_threads && \
     ln -s /usr/share/munin/plugins/elasticsearch_open_files /etc/munin/plugins/elasticsearch_open_files
 COPY munin.sh /munin.sh
-RUN yum clean all
-USER elasticsearch
 
-ENV ES_JAVA_OPTS="-Des.path.conf=/etc/elasticsearch"
-VOLUME ["/usr/share/elasticsearch/config/elasticsearch.yml", "/var/lib/elasticsearch", "/var/log/elasticsearh" ]
-CMD ["-E", "network.host=0.0.0.0", "-E", "discovery.zen.minimum_master_nodes=1"]
 
+VOLUME ["/elasticsearch/config/elasticsearch.yml", "/elasticsearch/", "/data/log", "/data" ]
+EXPOSE 9200
+EXPOSE 9300
+CMD "/usr/bin/supervisord -n"
