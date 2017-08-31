@@ -43,7 +43,7 @@ COPY munin.sh /munin.sh
 
 # Define working directory.
 WORKDIR /data
-VOLUME ["/elasticsearch/config/elasticsearch.yml", "/elasticsearch/", "/data" ]
+VOLUME ["/elasticsearch/", "/data" ]
 EXPOSE 9200
 EXPOSE 9300
 CMD "/usr/bin/supervisord -n"
