@@ -5,8 +5,7 @@ USER root
 
 RUN yum -y install epel-release && \
     yum -y update && \
-    yum -y install munin munin-node python-pip sudo && \
-    pip install PyMunin
+    yum -y install munin munin-node sudo
 RUN echo "elasticsearch ALL=(root) NOPASSWD:/usr/sbin/munin-node" >> /etc/sudoers
 COPY munin/elasticsearch_cache /usr/share/munin/plugins/elasticsearch_cache
 COPY munin/elasticsearch_cluster_shards /usr/share/munin/plugins/elasticsearch_cluster_shards
