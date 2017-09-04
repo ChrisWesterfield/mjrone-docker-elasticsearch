@@ -8,7 +8,7 @@ RUN \
   tar xvzf $ES_PKG_NAME.tar.gz && \
   rm -f $ES_PKG_NAME.tar.gz && \
   mv /$ES_PKG_NAME /elasticsearch && \
-  RUN groupadd -g 1000 elasticsearch && \
+  groupadd -g 1000 elasticsearch && \
   useradd elasticsearch -u 1000 -g 1000
 
 ENV JAVA_HOME /usr/lib/jvm/java-8-openjdk-amd64
