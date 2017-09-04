@@ -7,7 +7,11 @@ RUN \
   wget https://artifacts.elastic.co/downloads/elasticsearch/$ES_PKG_NAME.tar.gz && \
   tar xvzf $ES_PKG_NAME.tar.gz && \
   rm -f $ES_PKG_NAME.tar.gz && \
-  mv /$ES_PKG_NAME /elasticsearch
+  mv /$ES_PKG_NAME /elasticsearch && \
+  RUN groupadd -g 1000 elasticsearch && \
+  useradd elasticsearch -u 1000 -g 1000
+
+ENV JAVA_HOME /usr/lib/jvm/java-8-openjdk-amd64
 
 ADD config/elasticsearch.yml /elasticsearch/config/elasticsearch.yml
 RUN apt-get update && \
@@ -41,9 +45,12 @@ RUN ln -s /usr/share/munin/plugins/elasticsearch_cache /etc/munin/plugins/elasti
     ln -s /usr/share/munin/plugins/elasticsearch_open_files /etc/munin/plugins/elasticsearch_open_files
 COPY munin.sh /munin.sh
 
+RUN apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+
 # Define working directory.
 WORKDIR /data
 VOLUME ["/elasticsearch/", "/data" ]
 EXPOSE 9200
 EXPOSE 9300
-CMD "/usr/bin/supervisord -n"
+CMD ["/usr/bin/supervisord", "-n"]
